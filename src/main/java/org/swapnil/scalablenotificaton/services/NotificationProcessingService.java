@@ -11,8 +11,11 @@ import org.swapnil.scalablenotificaton.Models.Recipient;
 import org.swapnil.scalablenotificaton.Models.Template;
 import org.swapnil.scalablenotificaton.exceptions.TemplateNotFoundException;
 import org.swapnil.scalablenotificaton.repositorys.TemplateRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Arrays;
+import java.util.Map;
 
 @Service
 public class NotificationProcessingService {
@@ -57,6 +60,26 @@ public class NotificationProcessingService {
                 && !content.isUsingTemplates())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad request content.");
         }
+
+        // Proper JSON serialization
+        ObjectMapper objectMapper = new ObjectMapper();
+        String placeholdersJson = "{}"; // Default empty JSON
+
+        if (content.getPushNotification() != null && content.getPushNotification().getTitle() != null) {
+            try {
+                placeholdersJson = objectMapper.writeValueAsString(Map.of("name", content.getPushNotification().getTitle()));
+            } catch (JsonProcessingException e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error processing placeholders JSON");
+            }
+        }
+
+        // Create and save template
+        Template template = new Template();
+        template.setName("Welcome Email");
+        template.setContent("Hello, " + recipient.getUserEmail() + "! Welcome to our service.");
+        template.setPlaceholders(placeholdersJson);  // Use properly formatted JSON
+        template.setTemplatePriority(priority);
+        templateRepository.save(template);
     }
 
     /*
