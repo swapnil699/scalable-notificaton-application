@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.swapnil.scalablenotificaton.Models.BroadcastOfferRequest;
 import org.swapnil.scalablenotificaton.Models.NotificationRequest;
 
 import static org.swapnil.scalablenotificaton.constant.Constants.*;
@@ -48,6 +49,17 @@ public class KafkaService {
                 return TOPIC_PRIORITY_3;
             default:
                 throw new IllegalArgumentException("Invalid priority: " + priority);
+        }
+    }
+    // New method for broadcasting offers
+    public void sendBroadcastOffer(BroadcastOfferRequest broadcastOfferRequest) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String offerMessage = mapper.writeValueAsString(broadcastOfferRequest);
+            this.kafkaTemplate.send(TOPIC_BROADCAST, offerMessage);
+            log.info("Broadcast offer successfully forwarded to Kafka.");
+        } catch (Exception e) {
+            throw new KafkaException("Failed to send broadcast offer", e);
         }
     }
 }

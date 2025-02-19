@@ -16,7 +16,8 @@ public class KafkaConfig {
         NewTopic priority1Topic = TopicBuilder.name(TOPIC_PRIORITY_1).build();
         NewTopic priority2Topic = TopicBuilder.name(TOPIC_PRIORITY_2).build();
         NewTopic priority3Topic = TopicBuilder.name(TOPIC_PRIORITY_3).build();
+        NewTopic broadcastTopic = TopicBuilder.name(TOPIC_BROADCAST).build();
 
-        return new KafkaAdmin.NewTopics(priority1Topic, priority2Topic, priority3Topic);
+        return new KafkaAdmin.NewTopics(priority1Topic, priority2Topic, priority3Topic, broadcastTopic);
     }
 }

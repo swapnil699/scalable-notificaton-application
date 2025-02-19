@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.swapnil.scalablenotificaton.Models.BroadcastOfferRequest;
 import org.swapnil.scalablenotificaton.Models.NotificationRequest;
 import org.swapnil.scalablenotificaton.services.KafkaService;
 import org.swapnil.scalablenotificaton.services.NotificationProcessingService;
@@ -53,6 +54,26 @@ public class NotificationsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing notification.");
         } catch (Exception e) {
             log.error("Unexpected error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
+        }
+    }
+
+    // New endpoint for broadcast offers
+    @PostMapping("/broadcast-offer")
+    public ResponseEntity<?> broadcastOffer(@RequestBody BroadcastOfferRequest broadcastOfferRequest) {
+        if (broadcastOfferRequest.getEmailSubject() == null || broadcastOfferRequest.getEmailSubject().isEmpty() ||
+                broadcastOfferRequest.getMessage() == null || broadcastOfferRequest.getMessage().isEmpty()) {
+            return ResponseEntity.badRequest().body("Both subject and message are required for broadcast offers.");
+        }
+        try {
+            kafkaService.sendBroadcastOffer(broadcastOfferRequest);
+            log.debug("Broadcast offer forwarded to Kafka.");
+            return ResponseEntity.accepted().body("Broadcast offer accepted for processing.");
+        } catch (KafkaException e) {
+            log.error("Failed to forward broadcast offer to Kafka: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing broadcast offer.");
+        } catch (Exception e) {
+            log.error("Unexpected error in broadcast offer: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
         }
     }
