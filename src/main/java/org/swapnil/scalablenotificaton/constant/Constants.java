@@ -5,4 +5,5 @@ public class Constants {
     public static final String TOPIC_PRIORITY_2 = "priority-2";
     public static final String TOPIC_PRIORITY_3 = "priority-3";
     public static final String TOPIC_BROADCAST = "broadcast-offer";
+    public static final String TOPIC_NOTIFICATIONS = "sms-notifications";
 }

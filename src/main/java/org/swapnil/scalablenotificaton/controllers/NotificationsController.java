@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.swapnil.scalablenotificaton.Models.BroadcastOfferRequest;
 import org.swapnil.scalablenotificaton.Models.NotificationRequest;
+import org.swapnil.scalablenotificaton.dtos.SmsRequest;
 import org.swapnil.scalablenotificaton.services.KafkaService;
 import org.swapnil.scalablenotificaton.services.NotificationProcessingService;
+import org.swapnil.scalablenotificaton.services.SmsService;
 
 @RestController
 @RequestMapping("/api")
@@ -20,16 +22,21 @@ public class NotificationsController {
 
     private final KafkaService kafkaService;
     private final NotificationProcessingService notificationProcessingService;
+    private final SmsService smsService;
 
-    public NotificationsController(KafkaService kafkaService, NotificationProcessingService notificationProcessingService) {
+    public NotificationsController(KafkaService kafkaService, NotificationProcessingService notificationProcessingService,
+                                   SmsService smsService) {
         this.kafkaService = kafkaService;
         this.notificationProcessingService = notificationProcessingService;
+        this.smsService = smsService;
     }
 
     @GetMapping("/health")
     public String getHealth() {
         return "Running";
     }
+
+    // POST : http://localhost:8080/api/send-notification
 
     @PostMapping("/send-notification")
     public ResponseEntity<?> sendNotification(@RequestBody NotificationRequest notificationRequest) {
@@ -59,6 +66,11 @@ public class NotificationsController {
     }
 
     // New endpoint for broadcast offers
+    // POST : http://localhost:8080/api/broadcast-offer
+    /*
+            "emailSubject": "Limited Time Offer!",
+            "message": "Get 50% off on your next purchase. Hurry up!"
+     */
     @PostMapping("/broadcast-offer")
     public ResponseEntity<?> broadcastOffer(@RequestBody BroadcastOfferRequest broadcastOfferRequest) {
         if (broadcastOfferRequest.getEmailSubject() == null || broadcastOfferRequest.getEmailSubject().isEmpty() ||
@@ -77,4 +89,20 @@ public class NotificationsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");
         }
     }
+
+    // SMS sender code
+    //POST : http://localhost:8080/api/send-sms
+    /*
+        {
+            "phoneNumber": "+919146102377",
+            "messageBody": "Hello, this is a test message!"
+        }
+     */
+    @PostMapping("/send-sms")
+    public ResponseEntity<?> sendSms(@RequestBody SmsRequest smsRequest) {
+        log.info("Received SMS request for {}", smsRequest.getPhoneNumber());
+        smsService.sendSms(smsRequest.getPhoneNumber(), smsRequest.getMessageBody());
+        return ResponseEntity.ok("SMS request received successfully");
+    }
+
 }
